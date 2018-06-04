@@ -1,6 +1,14 @@
 
 
 
+var data = (localStorage.getItem('todoList')) ? JSON.parse(localStorage.getItem('todoList')):{
+  todo: [],
+  complete: []
+};
+
+
+
+
 // Remove and complete icons in SVG format
 var removeSVG = `<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 22 22" style="enable-background:new 0 0 22 22;" xml:space="preserve"><g><g><path class="fill" d="M16.1,3.6h-1.9V3.3c0-1.3-1-2.3-2.3-2.3h-1.7C8.9,1,7.8,2,7.8,3.3v0.2H5.9c-1.3,0-2.3,1-2.3,2.3v1.3
       c0,0.5,0.4,0.9,0.9,1v10.5c0,1.3,1,2.3,2.3,2.3h8.5c1.3,0,2.3-1,2.3-2.3V8.2c0.5-0.1,0.9-0.5,0.9-1V5.9
@@ -12,21 +20,71 @@ var completeSVG = `<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:x
 viewBox="0 0 22 22" style="enable-background:new 0 0 22 22;" xml:space="preserve"><rect y="0" class="noFill" width="22" height="22"/><g><path class="fill" d="M9.7,14.4L9.7,14.4c-0.2,0-0.4-0.1-0.5-0.2l-2.7-2.7c-0.3-0.3-0.3-0.8,0-1.1s0.8-0.3,1.1,0l2.1,2.1l4.8-4.8
     c0.3-0.3,0.8-0.3,1.1,0s0.3,0.8,0,1.1l-5.3,5.3C10.1,14.3,9.9,14.4,9.7,14.4z"/></g></svg>`
 
-
+renderTodoList();
 
 
 document.getElementById('add').addEventListener('click', function() {
   var value = document.getElementById('item').value;
   if(value) {
-    addItemTodo(value);
-    document.getElementById('item').value = '';
+    addItem(value);
   }
 });
+
+
+document.getElementById('item').addEventListener('keydown', function(e) {
+  var value = this.value;
+  if (e.code === 'Enter' && value) {
+    addItem(value);
+  }
+});
+
+
+function addItem(value) {
+    addItemTodo(value);
+    document.getElementById('item').value = '';
+
+    data.todo.push(value);
+    dataObjectUpdated();
+}
+
+
+function renderTodoList() {
+  if(!data.todo.length && !data.completed.length) return;
+
+for (var i = 0; i < data.todo.length; i++) {
+  var value = data.todo[i];
+  addItemTodo(value);
+}
+
+for (var j = 0; j < data.completed.length; j++) {
+  var value = data.completed[i];
+  addItemTodo(value, true);
+}
+
+}
+
+
+function dataObjectUpdated() {
+
+  localStorage.setItem('todoList', JSON.stringify(data));
+
+}
 
 
 function removeItem() {
   var item = this.parentNode.parentNode;
   var parent = item.parentNode;
+  var id = parent.id;
+  var value = item.innerText;
+
+
+  if (id === 'todo') {
+    data.todo.splice(data.todo.indexOf(value), 1);
+  } else {
+    data.completed.splice(data.completed.indexOf(value), 1);
+  }
+  dataObjectUpdated();
+
   parent.removeChild(item);
 }
 
@@ -34,6 +92,18 @@ function compeleteItem() {
   var item = this.parentNode.parentNode;
   var parent = item.parentNode;
   var id = parent.id;
+  var value = item.innerText
+
+
+
+if (id === 'todo') {
+  data.todo.splice(data.todo.indexOf(value), 1);
+  data.completed.push(value);
+} else {
+  data.completed.splice(data.completed.indexOf(value), 1);
+  data.todo.push(value);
+}
+dataObjectUpdated();
 
   //check if item should be added or re-done in the todo list
 
@@ -43,9 +113,9 @@ function compeleteItem() {
 }
 
 
-function addItemTodo(text) {
+function addItemTodo(text, completed) {
 
-  var list = document.getElementById('todo');
+  var list = (completed) ? document.getElementById('completed'):document.getElementById('todo');
 
   var item = document.createElement('li');
   item.innerText = text;
